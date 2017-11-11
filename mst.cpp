@@ -14,7 +14,7 @@ int int main(int argc, char const *argv[]) {
   ifstream iFile(iPath);
   /*Read Data*/
   iFile.close();
-
+  
   /*Execute Data*/
 
   oPath = "output.txt";
