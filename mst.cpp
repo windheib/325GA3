@@ -3,8 +3,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include <list>
-#include <iomanip>
+#include <algorithm>
 
 using namespace std;
 
@@ -26,9 +25,15 @@ struct edge{
   bool operator<(edge& a){
     return weight < a.weight;
   }
+  bool operator==(edge& a){
+    return start == a.start && end == a.end && weight == a.weight;
+  }
+  bool operator!=(edge& a){
+    return start != a.start || end != a.end || weight != a.weight;
+  }
 };
 
-
+//vvvvv-this is where the magic happens-vvvvv
 class DisjointSet{
   struct Node{
     int data;
@@ -89,11 +94,7 @@ public:
       cout << findN(&sets[i])->parent->data << " ";
     }
   }
-  void free(){
-    delete sets;
-  }
 };
-
 //code for MinHeap adapted from geeksforgeeks
 //http://www.geeksforgeeks.org/binary-heap/
 class MinHeap{
@@ -109,11 +110,14 @@ public:
   void MinHeapify(int i){
     int l = left(i);
     int r = right(i);
+
     int smallest = i;
-    if (l < curSize && arr[l].weight < arr[i].weight)
+    if (l < curSize && arr[l].weight < arr[i].weight){
         smallest = l;
-    if (r < MaxSize && arr[r] < arr[smallest])
+    }
+    if (r < curSize && arr[r] < arr[smallest]){
         smallest = r;
+    }
     if (smallest != i)
     {
         swap(&arr[i], &arr[smallest]);
@@ -179,7 +183,7 @@ public:
     *y = temp;
   }
   void print(){
-    cout << "Num Edges: " << curSize << "\n";
+    cout << "\nNum Edges: " << curSize << "\n";
     int elems = 1;
     int count = 0;
     for (int i = 0; i < curSize; i++){
@@ -198,19 +202,20 @@ public:
   }
 };
 
-
 int main(int argc, char const *argv[]) {
-
   string iPath = "input.txt";
   ifstream ff(iPath);
   string line = "";
   ff >> line;
   int n = stoi(line);
   MinHeap edges = MinHeap(n*n);
+
+  int edgeCount = 0;
+
   ff.seekg(line.length());
   string temp;
 
-  //Reads directly to heap
+  //Reads directly to heap**************************************/
   for (int i = 0; i < n; i++){
     ff>>temp;
     stringstream ss(temp);
@@ -223,6 +228,7 @@ int main(int argc, char const *argv[]) {
       getline(ss,tmp,',');
       int w = 0;
       if ((w=stoi(tmp)) > 0){
+        edgeCount++;
         edge e;
         e.start = i;
         e.end = j;
@@ -232,73 +238,73 @@ int main(int argc, char const *argv[]) {
     }
   }/**/
   ff.close();
-
-//  edges.print();
 /******************************************************************************/
+  edge *arr = new edge[edgeCount];
+  for (int i = 0; i < edgeCount; i++) {
+    arr[i] = edges.extractMin();
+  }
   int edgeIn = 0; //count of edges used in MST 1
   int edgeOut = 0; //count of edges not used in MST 1
-  edge *used = new edge[n];
-  edge *unused = new edge[n*n];
+  int *used = new int[n]; //which indexs were used;
   int MST_Weight = 0;
 /***********************************/
   DisjointSet sets = DisjointSet(n);
-  for (int i = 0; i < n; i++){ //initialize DisjointSets
+  for (int i = 0; i < n; i++){ //initialize DisjointSet
       sets.make(i);
   }
   /*******************************/
   while(edgeIn < n-1){
-    edge e;
-    e = edges.extractMin();
+    edge e = arr[edgeIn+edgeOut];
     if(sets.join(e.start,e.end)){
       MST_Weight += e.weight;
-      used[edgeIn] = e;
+      used[edgeIn] = edgeIn+edgeOut;;
       edgeIn++;
     } else {
-      cout << "cycle\n";
-      unused[edgeOut] = e;
       edgeOut++;
     }
   }/**/
-  cout << MST_Weight;
+//  cout << edgeCount << "\n";
+  /************************************/
+  int *results = new int[n-1];
+  int curMST;
+  for( int i = 0; i < edgeIn; i++){
+    curMST = 0;
 
-/*
-  cout << "\nedges used\n";
-  for (int i = 0; i < edgeIn; i++){
-    cout << "[" << used[i].start << ","<< used[i].end << ","<< used[i].weight << "]\n";
-  }
-  if(edgeOut == 0){
-    edge e = edges.extractMin();
-    unused[edgeOut++] = e;
-  }
-  cout << "\nedges checked but not used\n";
-  for (int i = 0; i < edgeOut; i++){
-    cout << "[" << unused[i].start << ","<< unused[i].end << ","<< unused[i].weight << "]\n";
-  }/**/
-/*
-  int nmIndex = 0;
-  edge *newMST = new edge[2];
-  //newMST[nmIndex++] = unused[0];
-  for (int i = 0; i < edgeIn; i++){
-    if( used[i].start == unused[0].start ||  used[i].end == unused[0].end ){
-      newMST[nmIndex++] = used[i];
+    DisjointSet s = DisjointSet(n);
+    for (int j = 0; j < n; j++){ //initialize DisjointSet
+        s.make(j);
     }
+    int count=0;
+    int edg=0;
+    while(count < n-1){
+      if(arr[used[i]] == arr[edg]){
+        edg++;
+        continue;
+      }
+      edge e = arr[edg];
+      if(s.join(e.start,e.end)){
+        curMST += e.weight;
+        count++;
+      }
+      edg++;
+    }
+    results[i] = curMST;
   }
-  int lrg = 0;
-  if (newMST[0].weight >= newMST[1].weight){
-    lrg = newMST[0].weight;
-  } else {
-    lrg = newMST[1].weight;
-  }
-  cout << lrg << " " << unused[0].weight;
-  MST_Weight = MST_Weight - lrg + unused[0].weight;
-  cout << MST_Weight;
-/**/
-/******************************************************************************/
 
+/******************************************************************************/
   string oPath = "output.txt";
   ofstream of(oPath);
-  /*Write Data*/
-  //of << to_string() << "\n";
+
+  sort(results, results+(n-1));
+
+  cout << "\nFirst " << MST_Weight << "\n";
+  cout << "Second "<< results[0] << "\n";
+  cout << "Third "<< results[1] << "\n";
+
+  of<< MST_Weight << "\n";
+  of<< results[0] << "\n";
+  of<< results[1];
   of.close();
+  /****************************************************************************/
   return 0;
 }
