@@ -7,7 +7,7 @@
 
 using namespace std;
 
-#define DISPLAY
+//#define DISPLAY
 
 struct edge{
   int start;
@@ -130,9 +130,9 @@ public:
   edge extractMin(){
     if (curSize <= 0){
         edge e;
-        e.start = NULL;
-        e.end = NULL;
-        e.weight = NULL;
+        e.start = -1;
+        e.end = -1;
+        e.weight = -1;
         return e;
       }
     if (curSize == 1) {
@@ -156,9 +156,9 @@ public:
   edge getMin() { return arr[0]; }
   void deleteKey(int i){
     edge e;
-    e.start = NULL;
-    e.end = NULL;
-    e.weight = NULL;
+    e.start = -1;
+    e.end = -1;
+    e.weight = -1;
     decreaseKey(i, e);
     extractMin();
   }
@@ -203,11 +203,11 @@ public:
 };
 
 int main(int argc, char const *argv[]) {
-  string iPath = "input.txt";
-  ifstream ff(iPath);
+  ifstream ff;
+  ff.open("input.txt"); 
   string line = "";
   ff >> line;
-  int n = stoi(line);
+  int n = atoi(line.c_str());
   MinHeap edges = MinHeap(n*n);
 
   int edgeCount = 0;
@@ -227,7 +227,7 @@ int main(int argc, char const *argv[]) {
       string tmp;
       getline(ss,tmp,',');
       int w = 0;
-      if ((w=stoi(tmp)) > 0){
+      if ((w=atoi(tmp.c_str())) > 0){
         edgeCount++;
         edge e;
         e.start = i;
@@ -292,14 +292,13 @@ int main(int argc, char const *argv[]) {
   }
 
 /******************************************************************************/
-  string oPath = "output.txt";
-  ofstream of(oPath);
+  ofstream of("output.txt");
 
   sort(results, results+(n-1));
 
-  cout << "\nFirst " << MST_Weight << "\n";
-  cout << "Second "<< results[0] << "\n";
-  cout << "Third "<< results[1] << "\n";
+  //cout << "\nFirst " << MST_Weight << "\n";
+  //cout << "Second "<< results[0] << "\n";
+  //cout << "Third "<< results[1] << "\n";
 
   of<< MST_Weight << "\n";
   of<< results[0] << "\n";
