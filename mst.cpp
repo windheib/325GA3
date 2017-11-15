@@ -214,8 +214,24 @@ int main(int argc, char const *argv[]) {
 
   ff.seekg(line.length());
   string temp;
-
-  //Reads directly to heap**************************************/
+  
+  //base cases (n = 1||2)
+  if(n == 1){
+	ofstream of("output.txt");
+       	of << 0;
+	return 0;	
+  }else if(n == 2){
+  	ofstream of("output.txt");
+	string val;
+	getline(ff, val, ',');
+	getline(ff, val, '\n');
+	for(int i=0; i<3; i++){ 
+	     of << val << endl;
+  	}
+	return 0;	
+  }   
+  
+  //ends directly to heap**************************************/
   for (int i = 0; i < n; i++){
     ff>>temp;
     stringstream ss(temp);
